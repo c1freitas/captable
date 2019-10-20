@@ -2,7 +2,6 @@ package data
 
 import (
 	"errors"
-	"log"
 	"strings"
 	"time"
 
@@ -27,9 +26,7 @@ func (o *Owner) add(a *Owner) error {
 		return errors.New("Investors must match to add")
 	}
 	o.Shares = o.Shares + a.Shares
-	d := o.CashPaid.Add(a.CashPaid)
-	log.Printf("\nValue: %v", d.String())
-	o.CashPaid = d
+	o.CashPaid = o.CashPaid.Add(a.CashPaid)
 	return nil
 }
 
@@ -53,10 +50,23 @@ type CapTable struct {
 
 // CalculateTotals will calculate all the ownership amounts and CapTable values. This is
 // intended to be called after loading all values.
-// It could be called after adding a new investor each time also, but thats less efficient.
+// NOTE: ownership amounts are rounded and may not add up to 100%.
 func (c *CapTable) CalculateTotals() {
-	// todo: recalculate all values here or as part of Add...
+	// Generate the shares and cash raised
+	for _, owner := range c.Owners {
+		c.CashRaised = c.CashRaised.Add(owner.CashPaid)
+		c.TotalShares = c.TotalShares + owner.Shares
+	}
 
+	// assign ownership amounts
+	totalSharesDecimal := decimal.NewFromFloat(float64(c.TotalShares))
+	for k, owner := range c.Owners {
+		ownerShare := decimal.NewFromFloat(float64(owner.Shares))
+		p := ownerShare.Div(totalSharesDecimal)
+		// for more exact ownership amounts, do not round values...
+		owner.OwnershipAmount = p.Shift(2).Round(2)
+		c.Owners[k] = owner
+	}
 }
 
 // addInvestor adds an investor. If the Investor already exists their values are only adjusted.
