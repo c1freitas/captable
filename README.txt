@@ -2,13 +2,13 @@
 
 Run `make` to get a list of supported make commands. 
 If you do not have make installed you can run each command directly. 
-Golang 1.13 is required (1.11+ should work but untested)
+Golang 1.13 is required (1.11+ should work but is untested)
 
 ## Building
 In order to build the CLI program you should have golang 1.13 installed. 
 You can run the command `make build` which will output the file in the `./build/` directory. 
 The built executable will be called `captable`.
-To build without make, `go build -o build/captable`
+To build without make, `go build -o build/captable .`
 
 ## testing
 The included unit tests can be run by running `make tests`
