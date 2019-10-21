@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/urfave/cli"
 )
 
@@ -16,7 +17,12 @@ func main() {
 	var filterDateStr string
 	var filePath string
 
+	// overide the default marshalling format
+	decimal.MarshalJSONWithoutQuotes = true
+
 	app := cli.NewApp()
+	app.Name = "captable - A program for generating Capitalization Tables"
+	app.Version = "0.0.1"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -33,10 +34,17 @@ func (o *Owner) add(a *Owner) error {
 // OwnerList is a custom map type to allow custom unmarshalling, but easy look ups by Investor Name
 type OwnerList map[string]Owner
 
-// UnmarshalJSON uses custom code for unmarshalling the types. Maps normally unmarshall
+// MarshalJSON uses custom code for unmarshalling the types. Maps normally unmarshall
 // into an associative array like structure in JSON. We want it to look like an array of objects.
-func (ol OwnerList) UnmarshalJSON(b []byte) error {
-	return nil
+func (ol OwnerList) MarshalJSON() ([]byte, error) {
+	// if you want to optimize you can use a bytes.Buffer and write the strings out yourself.
+	ownerArray := make([]Owner, len(ol))
+	i := 0
+	for _, v := range ol {
+		ownerArray[i] = v
+		i++
+	}
+	return json.Marshal(ownerArray)
 }
 
 // CapTable is the top level data struct

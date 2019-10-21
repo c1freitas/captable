@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -15,9 +14,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// TODO: replace logging
+const (
+	jsonPrefixPadding = ""
+	jsonIndentPadding = "  "
+)
+
+// ProcessFile is the main function which processes the supplied file.
 func ProcessFile(path string, filterDate time.Time) (*data.CapTable, error) {
-	log.Printf("Reading file %v", path)
 	fileHandle, err := os.Open(path)
 	defer fileHandle.Close()
 	if err != nil {
@@ -33,8 +36,6 @@ func ProcessFile(path string, filterDate time.Time) (*data.CapTable, error) {
 			if err != nil {
 				return nil, err
 			}
-			// Should add logging utility with logging levels. This may be to noisy.
-			log.Printf("Adding Investor %v", owner.Investor)
 			err = capTable.AddInvestor(owner)
 			if err != nil {
 				return nil, err
@@ -46,8 +47,8 @@ func ProcessFile(path string, filterDate time.Time) (*data.CapTable, error) {
 }
 
 // ValidLine checks to make sure the supplied line is valid for parsing.
-// Currently only checks to see if the line starts with a `#` mark,
-// indicating this is the initial line. This can be expanded to do any validation checks before attempting to parse the line.
+// Currently only checks to see if the line starts with a `#` mark,  indicating this is the initial line.
+// This can be expanded to do any validation checks before attempting to parse the line.
 func ValidLine(txt string) bool {
 	if strings.Index(txt, "#") == 0 {
 		return false
@@ -62,7 +63,7 @@ func ProcessLine(line string) (*data.Owner, error) {
 	if len(values) != 4 {
 		return nil, fmt.Errorf("ProcessLine: Line did not contain the correct amount of values %d", len(values))
 	}
-	investedDate, err := time.Parse(data.DateFormat, values[0])
+	investedDate, err := time.Parse(data.DateFormat, strings.TrimSpace(values[0]))
 	if err != nil {
 		return nil, fmt.Errorf("ProcessLine: Could not convert format of INVESTMENT DATE, %v", values[0])
 	}
@@ -74,16 +75,12 @@ func ProcessLine(line string) (*data.Owner, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ProcessLine: Could not convert format of CASH PAID %v", values[2])
 	}
-	investor := values[3]
+	investor := strings.TrimSpace(values[3])
 	owner := data.Owner{Shares: shares, CashPaid: cashPaid, Investor: investor, Date: investedDate}
 	return &owner, nil
 }
 
-const (
-	jsonPrefixPadding = ""
-	jsonIndentPadding = "  "
-)
-
+// RenderData Marshals the supplied capTable into a json byte array
 func RenderData(capTable *data.CapTable) ([]byte, error) {
 	if capTable == nil {
 		return nil, errors.New("Captable was nil")

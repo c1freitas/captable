@@ -51,6 +51,26 @@ func TestAddOwner(t *testing.T) {
 	assert.Equal(t, len(cap.Owners), 2)
 }
 
+func TestCalculateTotals(t *testing.T) {
+
+	ownerA := Owner{Shares: 270, Investor: "Billy Joel", CashPaid: createDecimal("1200.00"), Date: createTime("2018-01-02")}
+	ownerB := Owner{Shares: 30, Investor: "Billy Joel", CashPaid: createDecimal("200.00"), Date: createTime("2018-01-02")}
+	ownerC := Owner{Shares: 300, Investor: "Christie Brinkley", CashPaid: createDecimal("2500.00"), Date: createTime("2018-01-02")}
+
+	cap := CapTable{Date: createTime("2019-01-01"), Owners: make(OwnerList)}
+	err := cap.AddInvestor(&ownerA)
+	assert.NilError(t, err)
+	err = cap.AddInvestor(&ownerB)
+	assert.NilError(t, err)
+	err = cap.AddInvestor(&ownerC)
+	assert.Equal(t, len(cap.Owners), 2)
+	cap.CalculateTotals()
+
+	assert.Equal(t, cap.TotalShares, 600)
+	assert.Equal(t, cap.CashRaised.StringFixed(2), "3900.00")
+	assert.Equal(t, cap.Owners["Billy Joel"].OwnershipAmount.StringFixed(2), "50.00")
+}
+
 // //////
 // Helper functions
 // //////
